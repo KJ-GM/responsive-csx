@@ -120,5 +120,6 @@ Behind the scenes, we calculate:
 
 ## 📜 License
 
-MIT License © 2025
-Made with ❤️ by [KJ-GM]
+MIT © KJ-GM
+
+
