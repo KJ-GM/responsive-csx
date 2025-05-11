@@ -1,22 +1,22 @@
 ![responsive-csx](https://github.com/user-attachments/assets/304eb6c9-c018-437e-96d4-26cd23ce7749)
 
-<table style="width: 100%; text-align: center; border-collapse: collapse;">
+<table style="width: 100%; text-align: center; border-collapse: collapse; max-width: 500px; margin: 0 auto;">
   <thead>
     <tr>
-<!--       <th style="padding: 10px; border: 1px solid #ddd; font-size: 18px;">Device</th> -->
       <th style="padding: 10px; border: 1px solid #ddd; font-size: 18px;">Device Preview</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-<!--       <td style="padding: 10px; border: 1px solid #ddd;">iPhone</td> -->
       <td style="padding: 10px; border: 1px solid #ddd;">
-        <img src="https://github.com/user-attachments/assets/ab06c7bb-4f3e-4727-8258-50a8b172efd6" alt="iPhone Screenshot" style="width: 100%; max-width: 400px;">
+        <img src="https://github.com/user-attachments/assets/ab06c7bb-4f3e-4727-8258-50a8b172efd6" alt="iPhone Screenshot" style="width: 100%; max-height: 200px; object-fit: contain;">
       </td>
     </tr>
-
   </tbody>
 </table>
+
+
+
 
 
 ## ✨ Features
