@@ -68,11 +68,39 @@ const styles = StyleSheet.create({
 });
 ```
 
-📱 Device info:
+🔒 Clamp Options
 
-| Property    | Description                                                                   |
-| ----------- | ----------------------------------------------------------------------------- |
-| `rs.device` | Device utilities like `isTablet`, `hasNotch`, `screenWidth`, `baseUnit`, etc. |
+Each function supports optional clamp:
+```tsx
+rs.s(16, { min: 12 });           // Clamp only min
+rs.s(16, { max: 20 });           // Clamp only max
+rs.s(16, { min: 12, max: 20 });  // Clamp both ends
+
+rs.fs(18, { min: 14 });          // Safe minimum font size
+rs.ms(22, { max: 26 });          // Moderated with upper bound
+```
+✔️ You can pass clamp as the second parameter to restrict the result within a range:
+```tsx
+rs.s(value, {
+  min?: number,
+  max?: number,
+});
+```
+
+📱 Device info:
+```tsx
+rs.device
+```
+
+| Property        | Description                      |
+| --------------- | -------------------------------- |
+| `screenWidth`   | Current screen width (dp)        |
+| `screenHeight`  | Current screen height (dp)       |
+| `isTablet`      | Whether the device is a tablet   |
+| `aspectRatio`   | Screen aspect ratio              |
+| `isSmallDevice` | Is width ≤ 360                   |
+| `baseUnit`      | Internal base unit based on type |
+| `deviceType`    | 'phone' \| 'tablet' \| 'unknown' |
 
 ```tsx
 import { rs } from 'responsive-csx';
@@ -80,8 +108,6 @@ import { rs } from 'responsive-csx';
 if (rs.device.isTablet) {
   console.log('Tablet detected!');
 }
-
-console.log(`Screen Width: ${rs.device.screenWidth}`);
 ```
 
 🔁 Hooks:
