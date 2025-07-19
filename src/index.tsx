@@ -31,8 +31,6 @@ class DeviceDetectionService {
 
   isIOS: boolean;
   isAndroid: boolean;
-  isIPhoneX!: boolean;
-  hasNotch!: boolean;
 
   aspectRatio!: number;
   diagonalInches!: number;
@@ -79,29 +77,25 @@ class DeviceDetectionService {
       Math.pow(widthInches, 2) + Math.pow(heightInches, 2)
     );
 
-    this.isTablet =
-      this.diagonalInches >= 7 || (this.width > 550 && this.aspectRatio < 1.8);
-    this.isPhone = !this.isTablet;
+    // --- Device Type Detection ---
+    const w = this.width;
 
-    this.isSmallPhone = this.isPhone && this.diagonalInches < 5;
-    this.isLargePhone = this.isPhone && this.diagonalInches > 6;
-    this.isSmallTablet = this.isTablet && this.diagonalInches < 8.5;
-    this.isLargeTablet = this.isTablet && this.diagonalInches > 10;
+    // Based on Android & iOS logical width standards
+    if (w <= 600) {
+      this.isPhone = true;
+      this.isTablet = false;
+    } else {
+      this.isPhone = false;
+      this.isTablet = true;
+    }
 
-    this.isIPhoneX =
-      this.isIOS &&
-      !this.isTablet &&
-      !Platform.isTV &&
-      (this.height === 812 ||
-        this.width === 812 ||
-        this.height === 896 ||
-        this.width === 896 ||
-        this.height === 844 ||
-        this.width === 844 ||
-        this.height === 926 ||
-        this.width === 926);
+    // --- Phone Sizes ---
+    this.isSmallPhone = this.isPhone && w <= 390;
+    this.isLargePhone = this.isPhone && w > 390;
 
-    this.hasNotch = this.isIPhoneX || (this.isAndroid && this.aspectRatio > 2);
+    // --- Tablet Sizes ---
+    this.isSmallTablet = this.isTablet && w <= 720;
+    this.isLargeTablet = this.isTablet && w > 720;
 
     const widthBaseUnit = this.width / (this.isTablet ? 768 : 375);
     const heightBaseUnit = this.height / (this.isTablet ? 1024 : 812);
@@ -129,27 +123,49 @@ class DeviceDetectionService {
 
 export const Device = new DeviceDetectionService();
 
+// ------------- UTILS -------------
+
+function applyClamp(
+  value: number,
+  opts?: { min?: number; max?: number }
+): number {
+  if (!opts) return value;
+  if (opts.min !== undefined) value = Math.max(opts.min, value);
+  if (opts.max !== undefined) value = Math.min(opts.max, value);
+  return value;
+}
+
 // ------------- SCALING UTILITIES -------------
 
 /**
  * Scales a size based on the screen dimensions with width priority
  * Good for horizontal measurements and general sizing
  * @param size The size to scale
+ * @param opts Optional clamp options { min?, max? }
  * @returns The scaled size
  */
-export function scale(size: number): number {
-  return Math.round(size * Device.baseUnit * 10) / 10;
+export function scale(
+  size: number,
+  opts?: { min?: number; max?: number }
+): number {
+  const raw = Math.round(size * Device.baseUnit * 10) / 10;
+  return applyClamp(raw, opts);
 }
 
 /**
  * Scales a size with height bias for vertical measurements
  * Good for heights, vertical margins, etc.
  * @param size The size to scale vertically
+ * @param opts Optional clamp options { min?, max? }
  * @returns The vertically scaled size
  */
-export function verticalScale(size: number): number {
+export function verticalScale(
+  size: number,
+  opts?: { min?: number; max?: number }
+): number {
   const heightRatio = Device.height / (Device.isTablet ? 1024 : 812);
-  return Math.round(size * heightRatio * 10) / 10;
+  const raw = Math.round(size * heightRatio * 10) / 10;
+  return applyClamp(raw, opts);
 }
 
 /**
@@ -157,22 +173,32 @@ export function verticalScale(size: number): number {
  * Good for elements that need balanced scaling
  * @param size The size to scale
  * @param factor How much to weigh width vs height (0-1, default 0.5)
+ * @param opts Optional clamp options { min?, max? }
  * @returns The moderately scaled size
  */
-export function moderateScale(size: number, factor: number = 0.5): number {
+export function moderateScale(
+  size: number,
+  factor: number = 0.5,
+  opts?: { min?: number; max?: number }
+): number {
   const widthFactor = Device.width / (Device.isTablet ? 768 : 375);
   const heightFactor = Device.height / (Device.isTablet ? 1024 : 812);
   const scaleFactor = widthFactor * (1 - factor) + heightFactor * factor;
-  return Math.round(size * scaleFactor * 10) / 10;
+  const raw = Math.round(size * scaleFactor * 10) / 10;
+  return applyClamp(raw, opts);
 }
 
 /**
  * Scales a font size with additional adjustments for device type
  * Applies special handling for readability across different devices
  * @param size The font size to scale
+ * @param opts Optional clamp options { min?, max? }
  * @returns The scaled font size
  */
-export function scaleFontSize(size: number): number {
+export function scaleFontSize(
+  size: number,
+  opts?: { min?: number; max?: number }
+): number {
   let adjustedSize = size;
 
   if (Device.isSmallPhone) adjustedSize *= 0.9;
@@ -185,15 +211,45 @@ export function scaleFontSize(size: number): number {
 
   const accessibilityScale = Math.sqrt(Device.fontScale);
 
-  const result =
+  const raw =
     Math.round(adjustedSize * fontRatio * accessibilityScale * 10) / 10;
 
   const minSize = size * 0.7;
   const maxSize = size * 1.6;
 
-  return Math.min(Math.max(result, minSize), maxSize);
+  const clampedRaw = Math.min(Math.max(raw, minSize), maxSize);
+
+  return applyClamp(clampedRaw, opts);
 }
 
+/**
+ * Clamps a value to a minimum and maximum value.
+ * @param min The minimum allowed value
+ * @param value The value to clamp
+ * @param max The maximum allowed value
+ * @returns The clamped value
+ */
+export function clampValue(min: number, value: number, max: number): number {
+  return Math.max(min, Math.min(value, max));
+}
+
+/**
+ * Clamps a value to a minimum value.
+ * @param min The minimum allowed value
+ * @param value The value to clamp
+ */
+export function clampMin(min: number, value: number): number {
+  return Math.max(min, value);
+}
+
+/**
+ * Clamps a value to a maximum value.
+ * @param value The value to clamp
+ * @param max The maximum allowed value
+ */
+export function clampMax(value: number, max: number): number {
+  return Math.min(value, max);
+}
 // ------------- DIMENSION CHANGE DETECTION -------------
 
 /**
@@ -244,6 +300,10 @@ export const rs = {
   vs: verticalScale, // Height-based scale (e.g., vertical spacing)
   ms: moderateScale, // Moderated scale based on width with optional factor
   fs: scaleFontSize, // Font scaling based on screen size & pixel ratio
+  // Clamp utilities with short aliases
+  cl: clampValue, // shorter alias
+  clMin: clampMin,
+  clMax: clampMax,
 
   // Device detection instance
   device: Device, // Provides info like isTablet, hasNotch, baseUnit, etc.
