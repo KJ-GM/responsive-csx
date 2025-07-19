@@ -203,7 +203,7 @@ export function scaleFontSize(
 
   if (Device.isSmallPhone) adjustedSize *= 0.9;
   if (Device.isTablet) adjustedSize *= Device.isLargeTablet ? 1.15 : 1.05;
-  if (Device.isLargePhone) adjustedSize *= 1.05;
+  // if (Device.isLargePhone) adjustedSize *= 1.05;
 
   const widthRatio = Device.width / (Device.isTablet ? 768 : 375);
   const heightRatio = Device.height / (Device.isTablet ? 1024 : 812);
