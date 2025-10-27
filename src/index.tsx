@@ -201,13 +201,9 @@ export function scaleFontSize(
 ): number {
   let adjustedSize = size;
 
-  // if (Device.isSmallPhone) adjustedSize *= 0.9;
-  // if (Device.isTablet) adjustedSize *= Device.isLargeTablet ? 1.95 : 1.95;
   if (Device.isSmallPhone) adjustedSize *= 0.9;
-  else if (Device.isLargePhone)
-    adjustedSize *= 1.0; // Normal phones (baseline)
-  else if (Device.isSmallTablet) adjustedSize *= 1.3;
-  else if (Device.isLargeTablet) adjustedSize *= 1.5;
+  else if (Device.isSmallTablet) adjustedSize *= 1.05;
+  else if (Device.isLargeTablet) adjustedSize *= 1.1;
 
   const widthRatio = Device.width / (Device.isTablet ? 768 : 375);
   const heightRatio = Device.height / (Device.isTablet ? 1024 : 812);
@@ -227,71 +223,46 @@ export function scaleFontSize(
 }
 
 /**
- * Computes an adaptive, production-ready line height for typography.
- * Automatically applies font scaling and device multipliers for readability.
+ * Scales a value with tablet-specific multiplier
+ * Perfect for UI elements that need to be bigger on tablets (buttons, icons, spacing)
+ * @param size The base size to scale
+ * @param tabletFactor Multiplier for tablets (default: 1.3)
+ * @param opts Optional clamp options { min?, max? }
+ * @returns Scaled size (with tablet multiplier if on tablet)
  *
- * @param baseFontSize The *design* font size (unscaled, e.g. 16, 18, 28)
- * @returns A properly scaled line height value
+ * @example
+ * // Button height: 48 on phone, ~62 on tablet
+ * height: scaleTablet(48, 1.3)
+ *
+ * // Icon size: 24 on phone, ~30 on tablet
+ * size: scaleTablet(24, 1.25)
  */
-export function getLineHeight(baseFontSize: number): number {
-  // 1️⃣ First, apply your font scaling logic
-  const scaledFont = scaleFontSize(baseFontSize);
-
-  // 2️⃣ Define a baseline ratio
-  let ratio = 1.25; // standard web/Material baseline
-
-  // 3️⃣ Adjust per device type
-  if (Device.isSmallPhone) ratio = 1.2;
-  else if (Device.isLargePhone) ratio = 1.25;
-  else if (Device.isSmallTablet) ratio = 1.35;
-  else if (Device.isLargeTablet) ratio = 1.45;
-
-  // 4️⃣ Adjust for extreme accessibility fontScale (optional)
-  // Keeps line height proportional when user scales text very large
-  const fontScaleAdjustment = Math.min(Device.fontScale, 1.4);
-  const adjustedRatio = ratio * (fontScaleAdjustment / 1.2);
-
-  // 5️⃣ Compute the final line height
-  const lineHeight = Math.round(scaledFont * adjustedRatio);
-
-  return lineHeight;
+export function scaleTablet(
+  size: number,
+  tabletFactor: number = 1.3,
+  opts?: { min?: number; max?: number }
+): number {
+  const adjustedSize = Device.isTablet ? size * tabletFactor : size;
+  const raw = Math.round(adjustedSize * Device.baseUnit * 10) / 10;
+  return applyClamp(raw, opts);
 }
 
 /**
- * Scales icon sizes intelligently across devices.
- * Keeps visual balance with text while preventing oversized icons on tablets.
+ * Conditional value based on device type
+ * Returns different values for phone vs tablet
+ * @param phoneValue Value to use on phones
+ * @param tabletValue Value to use on tablets
+ * @returns The appropriate value for current device
  *
- * @param baseSize The design icon size (e.g. 20, 24, 32)
- * @returns The scaled icon size
+ * @example
+ * // Different column counts
+ * numColumns: deviceValue(2, 4)
+ *
+ * // Different sizes without scaling
+ * fontSize: deviceValue(16, 18)
  */
-export function getIconSize(baseSize: number): number {
-  // 1️⃣ Start with a moderate scale (width-biased)
-  const widthRatio = Device.width / (Device.isTablet ? 768 : 375);
-  const heightRatio = Device.height / (Device.isTablet ? 1024 : 812);
-  const baseScale = widthRatio * 0.65 + heightRatio * 0.35;
-
-  // 2️⃣ Device-specific adjustments
-  let scaleMultiplier = 1.0;
-
-  if (Device.isSmallPhone) scaleMultiplier = 0.9;
-  else if (Device.isLargePhone) scaleMultiplier = 1.0;
-  else if (Device.isSmallTablet) scaleMultiplier = 1.15;
-  else if (Device.isLargeTablet) scaleMultiplier = 1.25;
-
-  // 3️⃣ Combine scaling
-  let scaled = baseSize * baseScale * scaleMultiplier;
-
-  // 4️⃣ Optional — mild adjustment for fontScale (helps accessibility)
-  const fontScaleAdjust = Math.min(Device.fontScale, 1.3);
-  scaled *= fontScaleAdjust * 0.95;
-
-  // 5️⃣ Clamp to avoid extreme jumps
-  const min = baseSize * 0.8;
-  const max = baseSize * 1.5;
-  scaled = Math.min(Math.max(scaled, min), max);
-
-  // 6️⃣ Round for pixel-perfect rendering
-  return Math.round(scaled);
+export function deviceValue<T>(phoneValue: T, tabletValue: T): T {
+  return Device.isTablet ? tabletValue : phoneValue;
 }
 
 /**
@@ -372,8 +343,9 @@ export const rs = {
   vs: verticalScale, // Height-based scale (e.g., vertical spacing)
   ms: moderateScale, // Moderated scale based on width with optional factor
   fs: scaleFontSize, // Font scaling based on screen size & pixel ratio
-  lh: getLineHeight,
-  ic: getIconSize, // 👈 new addition
+
+  st: scaleTablet, // Tablet-aware scaling for UI elements
+  dv: deviceValue, // Device value (phone vs tablet)
 
   // Clamp utilities with short aliases
   cl: clampValue, // shorter alias
