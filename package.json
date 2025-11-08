@@ -1,6 +1,6 @@
 {
   "name": "responsive-csx",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Powerful responsive UI toolkit for React Native, delivering scalable designs across devices with ease.",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
