@@ -1,5 +1,5 @@
 import { Text, View, StyleSheet, Image } from 'react-native';
-import { rs } from 'responsive-csx';
+import rs from 'responsive-csx';
 
 export default function App() {
   return <ProfileScreen />;

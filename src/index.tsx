@@ -334,10 +334,25 @@ export function useResponsiveDimensions() {
   return dimensions;
 }
 
+// --- Export each function individually (for tree-shaking) ---
+export {
+  scale as s,
+  verticalScale as vs,
+  moderateScale as ms,
+  scaleFontSize as fs,
+  scaleTablet as st,
+  deviceValue as dv,
+  clampValue as cl,
+  clampMin as clMin,
+  clampMax as clMax,
+  useResponsiveDimensions as useDimensions,
+  Device as device,
+};
+
 /**
  * Responsive scaling utilities and device/context info for consistent UI design
  */
-export const rs = {
+const rs = {
   // Scaling functions
   s: scale, // Width-based scale (e.g., padding, margin, radius)
   vs: verticalScale, // Height-based scale (e.g., vertical spacing)
@@ -358,3 +373,5 @@ export const rs = {
   // Hook for listening to dimension/orientation changes in real-time
   useDimensions: useResponsiveDimensions, // Returns window/screen + orientation
 };
+
+export default rs;
